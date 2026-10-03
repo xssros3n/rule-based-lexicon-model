@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Moderation Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.15), transparent 25%),
+                              radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.15), transparent 25%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a78bfa, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeInUp 0.8s ease-out;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-main);
+            padding: 1.2rem;
+            font-size: 1.1rem;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            align-self: flex-end;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px rgba(139, 92, 246, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        /* Results Panel */
+        #resultsPanel {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #resultsPanel.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-safe {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-abusive {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .result-box {
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .result-box h3 {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.8rem;
+        }
+
+        .result-box p {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .censored-text {
+            color: var(--warning);
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .meta-info {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-tag {
+            background: rgba(255,255,255,0.05);
+            padding: 0.4rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .meta-tag strong {
+            color: var(--text-main);
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .admin-panel {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .admin-panel h2 {
+            font-size: 1.2rem;
+            color: var(--danger);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .admin-input-group {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .admin-input-group input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-main);
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+        }
+        
+        .admin-input-group button {
+            background: var(--danger);
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>AI Moderation Engine</h1>
+            <p>Real-time detection of abusive language & profanity</p>
+        </header>
+
+        <div class="glass-panel">
+            <div class="input-group">
+                <textarea id="textInput" placeholder="Type a sentence here to analyze (e.g., 'tu kaha jaa rha hai bc')..."></textarea>
+                <button id="analyzeBtn" onclick="analyzeText()">
+                    <span>Analyze Content</span>
+                    <div class="loader" id="loader"></div>
+                </button>
+            </div>
+        </div>
+
+        <div id="resultsPanel" class="glass-panel">
+            <div id="statusBadge" class="status-badge status-safe">
+                ✓ Safe Content
+            </div>
+
+            <div class="result-grid">
+                <div class="result-box">
+                    <h3>Original Text</h3>
+                    <p id="originalText"></p>
+                </div>
+                <div class="result-box">
+                    <h3>Moderated Output</h3>
+                    <p id="censoredText"></p>
+                </div>
+            </div>
+
+            <div class="meta-info">
+                <div class="meta-tag">Action Taken: <strong id="actionTaken">Allow</strong></div>
+                <div class="meta-tag" id="reasonContainer" style="display: none;">Reason: <strong id="reasonCode">None</strong></div>
+                <div class="meta-tag">Abusive Spans: <strong id="spansCount">0</strong></div>
+            </div>
+        </div>
+        
+        <!-- ADMIN PANEL SIMULATOR -->
+        <div class="glass-panel admin-panel">
+            <h2>🛡️ Admin Settings: Add New Bad Word</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem;">
+                Agar koi naya word milta hai jo list mein nahi hai, toh use yahan daalein. Model turant use seekh lega bina train kiye!
+            </p>
+            <div class="admin-input-group">
+                <input type="text" id="newWordInput" placeholder="Enter new bad word...">
+                <button onclick="addWord()">Add Instantly</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeText() {
+            const input = document.getElementById('textInput').value.trim();
+            if (!input) return;
+
+            const btnText = document.querySelector('#analyzeBtn span');
+            const loader = document.getElementById('loader');
+            const resultsPanel = document.getElementById('resultsPanel');
+
+            // UI Loading state
+            btnText.style.display = 'none';
+            loader.style.display = 'block';
+            resultsPanel.classList.remove('active');
+
+            try {
+                // Ensure correct URL pointing to the FastAPI backend
+                const response = await fetch('/moderate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: input })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API Error');
+                }
+
+                const data = await response.json();
+                displayResults(input, data);
+            } catch (error) {
+                alert("Error connecting to the Moderation Engine. Make sure the server is running.");
+                console.error(error);
+            } finally {
+                // Restore UI state
+                btnText.style.display = 'block';
+                loader.style.display = 'none';
+            }
+        }
+
+        function displayResults(originalText, data) {
+            const resultsPanel = document.getElementById('resultsPanel');
+            const statusBadge = document.getElementById('statusBadge');
+            const origTextEl = document.getElementById('originalText');
+            const censTextEl = document.getElementById('censoredText');
+            const actionTaken = document.getElementById('actionTaken');
+            const reasonContainer = document.getElementById('reasonContainer');
+            const reasonCode = document.getElementById('reasonCode');
+            const spansCount = document.getElementById('spansCount');
+
+            // Set texts
+            origTextEl.textContent = originalText;
+            
+            // Highlight censored parts with styling
+            if(data.is_abusive && data.censored_text !== originalText) {
+                // Just for visual effect in UI, we replace ** with span
+                const formattedCensored = data.censored_text.replace(/\*\*/g, '<span class="censored-text">**</span>');
+                censTextEl.innerHTML = formattedCensored;
+            } else {
+                censTextEl.textContent = data.censored_text;
+            }
+
+            // Update Badge
+            if (data.is_abusive) {
+                statusBadge.className = 'status-badge status-abusive';
+                statusBadge.innerHTML = '⚠ Abusive Content Detected';
+                setTimeout(() => {
+                    alert("⚠️ WARNING: You are using bad words! Your message has been flagged and censored. Please maintain a respectful environment.");
+                }, 500);
+            } else {
+                statusBadge.className = 'status-badge status-safe';
+                statusBadge.innerHTML = '✓ Safe Content';
+            }
+
+            // Update Meta info
+            actionTaken.textContent = data.action.toUpperCase();
+            
+            if (data.reason_code) {
+                reasonContainer.style.display = 'block';
+                reasonCode.textContent = data.reason_code;
+            } else {
+                reasonContainer.style.display = 'none';
+            }
+
+            spansCount.textContent = data.detected_spans ? data.detected_spans.length : 0;
+
+            // Animate In
+            setTimeout(() => {
+                resultsPanel.classList.add('active');
+            }, 100);
+        }
+        
+        async function addWord() {
+            const input = document.getElementById('newWordInput').value.trim();
+            if (!input) return;
+
+            try {
+                const response = await fetch('/admin/add_word', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ word: input, severity: "high" })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    if (data.status === "already_exists") {
+                        alert(`Word '${data.word}' is already in the blocklist!`);
+                    } else {
+                        alert(`✅ Success: ${data.message}\nAb aap upar wale box me test karke dekh sakte hain!`);
+                        document.getElementById('newWordInput').value = '';
+                    }
+                } else {
+                    alert("Error: " + data.detail);
+                }
+            } catch (error) {
+                alert("Failed to connect to the Admin API.");
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

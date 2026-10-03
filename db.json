@@ -1,0 +1,125 @@
+{
+  "warnings": [
+    {
+      "user_id": "user_777",
+      "message_id": "msg_005",
+      "original_text": "tum madarchod ho",
+      "detected_spans": [
+        {
+          "text": "madarchod",
+          "start": 4,
+          "end": 13,
+          "severity": "high",
+          "category": "abusive"
+        }
+      ],
+      "timestamp": "2026-10-03T19:06:54.468405+00:00"
+    },
+    {
+      "user_id": "string",
+      "message_id": "string",
+      "original_text": "madar chod",
+      "detected_spans": [
+        {
+          "text": "madarchod",
+          "start": 0,
+          "end": 10,
+          "severity": "high",
+          "category": "abusive"
+        }
+      ],
+      "timestamp": "2026-10-03T19:22:18.041966+00:00"
+    },
+    {
+      "user_id": "string",
+      "message_id": "string",
+      "original_text": "m4d4r chod",
+      "detected_spans": [
+        {
+          "text": "madarchod",
+          "start": 0,
+          "end": 10,
+          "severity": "high",
+          "category": "abusive"
+        }
+      ],
+      "timestamp": "2026-10-03T19:22:44.516673+00:00"
+    },
+    {
+      "user_id": "string",
+      "message_id": "string",
+      "original_text": "m4d4r chod",
+      "detected_spans": [
+        {
+          "text": "madarchod",
+          "start": 0,
+          "end": 10,
+          "severity": "high",
+          "category": "abusive"
+        }
+      ],
+      "timestamp": "2026-10-03T19:22:56.476424+00:00"
+    },
+    {
+      "user_id": "string",
+      "message_id": "string",
+      "original_text": "m4d4r chod",
+      "detected_spans": [
+        {
+          "text": "madarchod",
+          "start": 0,
+          "end": 10,
+          "severity": "high",
+          "category": "abusive"
+        }
+      ],
+      "timestamp": "2026-10-03T19:22:56.716323+00:00"
+    },
+    {
+      "user_id": "string",
+      "message_id": "string",
+      "original_text": "m4d4r chod",
+      "detected_spans": [
+        {
+          "text": "madarchod",
+          "start": 0,
+          "end": 10,
+          "severity": "high",
+          "category": "abusive"
+        }
+      ],
+      "timestamp": "2026-10-03T19:22:56.898476+00:00"
+    },
+    {
+      "user_id": "string",
+      "message_id": "string",
+      "original_text": "m4d4r chod",
+      "detected_spans": [
+        {
+          "text": "madarchod",
+          "start": 0,
+          "end": 10,
+          "severity": "high",
+          "category": "abusive"
+        }
+      ],
+      "timestamp": "2026-10-03T19:22:57.184254+00:00"
+    },
+    {
+      "user_id": "string",
+      "message_id": "string",
+      "original_text": "m4d4r chod",
+      "detected_spans": [
+        {
+          "text": "madarchod",
+          "start": 0,
+          "end": 10,
+          "severity": "high",
+          "category": "abusive"
+        }
+      ],
+      "timestamp": "2026-10-03T19:22:57.364895+00:00"
+    }
+  ],
+  "reports": []
+}
