@@ -29,9 +29,12 @@ class ModerationService:
         # 2. Span Detection
         detected_spans = self.span_detector.detect_spans(normalized_text)
         
-        # 3. Whole-message Classification (BYPASSED)
-        label = "safe"
-        confidence = 1.0
+        # 3. Whole-message Classification (HYBRID Pass 2)
+        if len(detected_spans) > 0:
+            label = "abusive"
+            confidence = 1.0
+        else:
+            label, confidence = self.classifier.predict(normalized_text)
         
         # 4. Sanitize (Censor)
         censored_text = self.sanitizer.sanitize(text, detected_spans, self.normalizer, norm_to_orig)
@@ -39,13 +42,15 @@ class ModerationService:
         # 5. Policy
         decision = self.policy.decide(label, confidence, len(detected_spans) > 0)
         
-        # If policy allowed it but we warned due to spans, update the label to abusive
         if len(detected_spans) > 0:
-            label = "abusive"
-            confidence = 1.0 # deterministic span match
             decision["allowed"] = False
             decision["action"] = "CENSOR_WARN"
             decision["reason_code"] = "PROFANITY_DETECTED"
+        elif label == "abusive" and confidence > 0.85:
+            # ML Model caught something very clever!
+            decision["allowed"] = False
+            decision["action"] = "WARN"
+            decision["reason_code"] = "ML_ABUSE_DETECTED"
             
         return {
             "allowed": decision["allowed"],
