@@ -15,7 +15,11 @@ class ModerationService:
             
         self.normalizer = TextNormalizer()
         self.span_detector = SpanDetector(lexicon_path=lexicon_path)
-        self.classifier = WholeMessageClassifier(model_path)
+        base_dir = os.path.dirname(model_path)
+        self.classifier = WholeMessageClassifier(
+            vectorizer_path=os.path.join(base_dir, "vectorizer.joblib"),
+            model_path=os.path.join(base_dir, "model.joblib")
+        )
         self.sanitizer = Sanitizer()
         self.policy = PolicyEngine()
 
