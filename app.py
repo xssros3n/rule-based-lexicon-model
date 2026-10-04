@@ -33,7 +33,7 @@ def read_root():
     # Redirect directly to the Swagger UI for API testing
     return RedirectResponse(url="/docs")
 
-MODEL_PATH = os.getenv("MODEL_PATH", str(Path(__file__).parent / "moderation_model.ftz"))
+MODEL_PATH = os.getenv("MODEL_PATH", str(Path(__file__).parent / "model.joblib"))
 LEXICON_PATH = os.path.join(Path(__file__).parent, "profanity_lexicon.json")
 DB_PATH = os.path.join(Path(__file__).parent, "db.json")
 
