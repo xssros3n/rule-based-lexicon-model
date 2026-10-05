@@ -34,10 +34,12 @@ class SpanDetector:
             exact_pattern = r'\b' + re.escape(word) + r'\b'
             self.patterns.append((re.compile(exact_pattern), word, severity))
             
-            # Obfuscated pattern: allow optional non-word chars (like ., -, spaces) between letters
-            # e.g., 'b' + r'[.\-\s]*' + 'c'
+            # Obfuscated pattern: allow any non-word char (like ., -, #, spaces) between letters
+            # and allow characters to be repeated (e.g. madarchodddddd)
             if len(word) >= 2:
-                obfuscated = r'[.\-\s@_]*'.join(re.escape(char) for char in word)
+                # We use char+ to match one or more of the same character
+                # and [\W_]* to match zero or more punctuation/spaces between characters
+                obfuscated = r'[\W_]*'.join(re.escape(char) + r'+' for char in word)
                 # Still enforce word boundaries around the obfuscated word
                 obfuscated_pattern = r'\b' + obfuscated + r'\b'
                 # We compile it

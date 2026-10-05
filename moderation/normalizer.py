@@ -39,7 +39,8 @@ class TextNormalizer:
         
         # Leetspeak mapping
         leet_map = {
-            '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b', '@': 'a', '$': 's', '!': 'i'
+            '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b', 
+            '@': 'a', '$': 's', '!': 'i', '2': 's', '#': 'h', '+': 't', 'v': 'u'
         }
 
         for i, char in enumerate(text):
