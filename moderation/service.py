@@ -9,9 +9,20 @@ from moderation.policy import PolicyEngine
 import os
 
 class ModerationService:
-    def __init__(self, model_path: str, lexicon_path: str = None):
+    def __init__(self, model_path: str, lexicon_path: str = None, safe_lexicon_path: str = None):
         if lexicon_path is None:
             lexicon_path = os.path.join(os.path.dirname(model_path), "profanity_lexicon.json")
+        if safe_lexicon_path is None:
+            safe_lexicon_path = os.path.join(os.path.dirname(model_path), "safe_lexicon.json")
+            
+        import json
+        self.safe_lexicon = []
+        if os.path.exists(safe_lexicon_path):
+            try:
+                with open(safe_lexicon_path, "r", encoding="utf-8") as f:
+                    self.safe_lexicon = json.load(f)
+            except:
+                self.safe_lexicon = []
             
         self.normalizer = TextNormalizer()
         self.span_detector = SpanDetector(lexicon_path=lexicon_path)
@@ -39,6 +50,15 @@ class ModerationService:
             confidence = 1.0
         else:
             label, confidence = self.classifier.predict(normalized_text)
+            if label in ["abusive", "severe_abusive"]:
+                has_safe = False
+                for sw in self.safe_lexicon:
+                    if sw in normalized_text:
+                        has_safe = True
+                        break
+                if has_safe:
+                    label = "safe"
+                    confidence = 1.0
         
         # 4. Sanitize (Censor)
         censored_text = self.sanitizer.sanitize(text, detected_spans, self.normalizer, norm_to_orig)

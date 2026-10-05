@@ -35,6 +35,7 @@ def read_root():
 
 MODEL_PATH = os.getenv("MODEL_PATH", str(Path(__file__).parent / "model.joblib"))
 LEXICON_PATH = os.path.join(Path(__file__).parent, "profanity_lexicon.json")
+SAFE_LEXICON_PATH = os.path.join(Path(__file__).parent, "safe_lexicon.json")
 DB_PATH = os.path.join(Path(__file__).parent, "db.json")
 
 service = None
@@ -54,7 +55,7 @@ def load_model():
     global service
     if not os.path.exists(MODEL_PATH):
         raise RuntimeError(f"Model not found at {MODEL_PATH}")
-    service = ModerationService(MODEL_PATH)
+    service = ModerationService(MODEL_PATH, lexicon_path=LEXICON_PATH, safe_lexicon_path=SAFE_LEXICON_PATH)
     
     # Initialize DB if not exists
     if not os.path.exists(DB_PATH):
@@ -198,6 +199,74 @@ def get_words():
         with open(LEXICON_PATH, "r", encoding="utf-8") as f:
             lexicon = json.load(f)
         return {"words": lexicon}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class AddSafeWordRequest(BaseModel):
+    word: str
+
+@app.post("/admin/add_safe_word")
+def add_safe_word(req: AddSafeWordRequest):
+    if not req.word or not req.word.strip():
+        raise HTTPException(status_code=400, detail="Empty word")
+    
+    try:
+        safe_lexicon = []
+        if os.path.exists(SAFE_LEXICON_PATH):
+            with open(SAFE_LEXICON_PATH, "r", encoding="utf-8") as f:
+                safe_lexicon = json.load(f)
+                
+        word_clean = req.word.strip().lower()
+        if word_clean in safe_lexicon:
+            return {"status": "already_exists", "word": word_clean}
+            
+        safe_lexicon.append(word_clean)
+        
+        with open(SAFE_LEXICON_PATH, "w", encoding="utf-8") as f:
+            json.dump(safe_lexicon, f, indent=2, ensure_ascii=False)
+            
+        if service:
+            service.safe_lexicon = safe_lexicon
+            
+        return {"status": "success", "message": f"Word '{word_clean}' added to allowlist instantly!", "word": word_clean}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class RemoveSafeWordRequest(BaseModel):
+    word: str
+
+@app.post("/admin/remove_safe_word")
+def remove_safe_word(req: RemoveSafeWordRequest):
+    try:
+        safe_lexicon = []
+        if os.path.exists(SAFE_LEXICON_PATH):
+            with open(SAFE_LEXICON_PATH, "r", encoding="utf-8") as f:
+                safe_lexicon = json.load(f)
+                
+        word_clean = req.word.strip().lower()
+        if word_clean not in safe_lexicon:
+            return {"status": "not_found", "message": "Word not in allowlist."}
+            
+        safe_lexicon.remove(word_clean)
+        
+        with open(SAFE_LEXICON_PATH, "w", encoding="utf-8") as f:
+            json.dump(safe_lexicon, f, indent=2, ensure_ascii=False)
+            
+        if service:
+            service.safe_lexicon = safe_lexicon
+            
+        return {"status": "success", "message": f"Word '{word_clean}' removed from allowlist instantly!", "word": word_clean}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/admin/get_safe_words")
+def get_safe_words():
+    try:
+        if os.path.exists(SAFE_LEXICON_PATH):
+            with open(SAFE_LEXICON_PATH, "r", encoding="utf-8") as f:
+                safe_lexicon = json.load(f)
+            return {"safe_words": safe_lexicon}
+        return {"safe_words": []}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
