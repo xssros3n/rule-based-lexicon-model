@@ -51,7 +51,7 @@ def save_db(data):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 @app.on_event("startup")
-def load_model():
+async def load_model():
     global service
     if not os.path.exists(MODEL_PATH):
         raise RuntimeError(f"Model not found at {MODEL_PATH}")
