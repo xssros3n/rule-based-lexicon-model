@@ -382,16 +382,7 @@
     "kuttay": "high",
     "suwar": "high",
     "ullu ke patthe": "high",
-    "bakchod": {
-        "severity": "high",
-        "category": "abusive"
-    },
-    "bakchodi": {
-        "severity": "high",
-        "category": "abusive"
-    },
-    "f0ck": {
-        "severity": "high",
-        "category": "abusive"
-    }
+    "bakchod": "high",
+    "bakchodi": "high",
+    "f0ck": "high"
 }
